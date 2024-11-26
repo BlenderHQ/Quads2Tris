@@ -5,11 +5,72 @@
 from __future__ import annotations
 
 import os
-import subprocess
+import concurrent.futures as cf
 import math
 import time
 from PyQt5 import QtWidgets, QtCore
 import sys
+
+# Counter for purging orphaned data blocks, initialized to 100
+purge_counter = 100
+
+
+def process_obj_files(files, input_folder, output_folder):
+    import bpy
+
+    for obj_file in files:
+
+        global purge_counter
+        print(f"Processing OBJ file: {obj_file}")
+
+        input_file = os.path.join(input_folder, obj_file)
+        output_file = os.path.join(output_folder, obj_file)
+
+        # Import the Wavefront OBJ using wm.obj_import
+        bpy.ops.wm.obj_import(filepath=input_file, filter_glob='*.obj;*.mtl')
+
+        # Get the imported object by name (OBJ files will have the same name as the file, excluding the extension)
+        obj_name = os.path.splitext(obj_file)[0]
+        imported_object = bpy.data.objects.get(obj_name)
+
+        if imported_object and imported_object.type == 'MESH':
+            # Make the object active
+            bpy.context.view_layer.objects.active = imported_object
+            # Select the object
+            imported_object.select_set(True)
+            # Enter Edit mode
+            bpy.ops.object.mode_set(mode='EDIT')
+            # Select all faces
+            bpy.ops.mesh.select_all(action='SELECT')
+            # Triangulate the mesh
+            bpy.ops.mesh.quads_convert_to_tris(quad_method='FIXED', ngon_method='BEAUTY')
+            # Return to Object mode
+            bpy.ops.object.mode_set(mode='OBJECT')
+            # Deselect the object
+            imported_object.select_set(False)
+
+        # Export the Wavefront OBJ with triangulation using wm.obj_export
+        bpy.ops.wm.obj_export(
+            filepath=output_file,
+            export_triangulated_mesh=False,
+            export_uv=True,
+            export_normals=False,
+            export_materials=False,
+            filter_glob='*.obj;*.mtl'
+        )
+
+        # Print the result
+        print(f"Successfully saved triangulated OBJ to: {output_file}")
+
+        # Delete all imported objects from the scene to clear memory completely
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.delete()
+
+        # Purge orphaned data blocks every 100 meshes
+        purge_counter -= 1
+        if purge_counter == 0:
+            bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
+            purge_counter = 100
 
 
 class TriangulationApp(QtWidgets.QWidget):
@@ -18,7 +79,6 @@ class TriangulationApp(QtWidgets.QWidget):
         self.initUI()
 
     def initUI(self):
-
         # set stylesheet
         with open("style.qt", 'r') as stylesheet_file:
             stylesheet_data = stylesheet_file.read()
@@ -124,27 +184,13 @@ class TriangulationApp(QtWidgets.QWidget):
 
         # Split the list into batches for each process
         batch_size = math.ceil(len(obj_files) / num_processes)
-        batches = [obj_files[i:i + batch_size] for i in range(0, len(obj_files), batch_size)]
+        chunks = [obj_files[i:i + batch_size] for i in range(0, len(obj_files), batch_size)]
 
         # Start timing
         start_time = time.time()
 
-        # Create and launch a Python subprocess for each batch using pipes
-        processes = []
-        for idx, batch in enumerate(batches):
-            # Construct the command
-            cmd = ["python", "triangulate_mesh_batch.py", input_folder, output_folder]
-            print(f"Launching subprocess {idx} with command: {' '.join(cmd)}")
-
-            # Run the triangulation script in a subprocess and use the pipe to send the batch data
-            process = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True, start_new_session=True)
-            process.stdin.write('\n'.join(batch) + '\n')
-            process.stdin.close()  # Close stdin to indicate we're done writing to it
-            processes.append(process)
-
-        # Wait for all subprocesses to complete
-        for process in processes:
-            process.wait()
+        with cf.ProcessPoolExecutor(max_workers=num_processes) as executor:
+            executor.map(process_obj_files, chunks, input_folder, output_folder)
 
         # End timing
         end_time = time.time()
@@ -158,9 +204,12 @@ class TriangulationApp(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
+    original_dir = os.getcwd()
     os.chdir(os.path.dirname(__file__))
 
     app = QtWidgets.QApplication(sys.argv)
     window = TriangulationApp()
     window.show()
     sys.exit(app.exec_())
+
+    os.chdir(original_dir)
