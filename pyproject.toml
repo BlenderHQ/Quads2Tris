@@ -1,0 +1,23 @@
+[project]
+name = "Quad2Tris"
+description = "Utility for batch *.obj files triangulation processing"
+license = { file = "LICENSE" }
+readme = "README.md"
+dynamic = ["version"] # Its come from module's `__version__` attribute.
+dependencies = [
+    "PyQt5",
+    "bpy >= 4.3", # Python version depends on it.
+]
+requires-python = "== 3.11.9" # Blender works with.
+authors = [
+    { name = "Ivan Perevala", email = "ivan95perevala@gmail.com" },
+    { name = "Vladlen Kuzmin" },
+]
+keywords = ["blender", "python", "triangulation", "obj"]
+
+[project.urls]
+Homepage = "https://github.com/BlenderHQ/Quads2Tris"
+# Documentation = "https://readthedocs.org"
+Repository = "https://github.com/BlenderHQ/Quads2Tris.git"
+Issues = "https://github.com/BlenderHQ/Quads2Tris/issues"
+# Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
