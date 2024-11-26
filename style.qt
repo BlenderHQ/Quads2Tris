@@ -1,0 +1,66 @@
+* {
+    color: #E0E0E0;
+    background-color: #101010;
+}
+
+/*Tool Button*/
+QToolButton {
+    background: #282828;
+    color: #E0E0E0;
+    border: none;
+    border-radius: 3px;
+}
+
+/*Push Button*/
+QPushButton {
+    background: #202020;
+    color: #606060;
+    border: none;
+    border-radius: 3px;
+}
+
+QPushButton:flat:disabled {
+    background: #202020;
+    color: #606060;
+}
+
+QPushButton:flat:checked:disabled {
+    background: #202020;
+    color: #606060;
+}
+
+QPushButton:flat {
+    background: #202020;
+    color: #606060;
+    border: none;
+    border-radius: 3px;
+}
+
+QPushButton:flat:checked {
+    background: #101010;
+    color: white;
+    border: none;
+    border-radius: 3px;
+}
+
+/*Radio Button*/
+QRadioButton {
+    spacing: 3px;
+    margin: 0px;
+    margin-right: 3px;
+}
+
+QRadioButton::indicator {
+    margin: 0px;
+}
+
+QPlainTextEdit {
+    border: none;
+    background: #1E1E1E;
+}
+
+QSpinBox {
+    color: white;
+    background-color: #101010;
+    border: 0px solid black;
+}
