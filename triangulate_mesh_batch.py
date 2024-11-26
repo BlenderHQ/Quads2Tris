@@ -4,7 +4,10 @@ import sys
 
 # Read input arguments
 if len(sys.argv) < 3:
-    raise ValueError("Not enough arguments provided. Usage: python triangulate_mesh_batch.py <input_folder> <output_folder> <obj_files...>")
+    raise ValueError((
+        "Not enough arguments provided. "
+        "Usage: python triangulate_mesh_batch.py <input_folder> <output_folder> <obj_files...>"
+    ))
 
 input_folder = sys.argv[1]
 output_folder = sys.argv[2]
@@ -20,6 +23,8 @@ bpy.ops.wm.read_factory_settings(use_empty=True)
 purge_counter = 100
 
 # Function to process a single OBJ file
+
+
 def process_obj_file(obj_file, input_folder, output_folder):
     global purge_counter
     print(f"Processing OBJ file: {obj_file}")
@@ -51,7 +56,14 @@ def process_obj_file(obj_file, input_folder, output_folder):
         imported_object.select_set(False)
 
     # Export the Wavefront OBJ with triangulation using wm.obj_export
-    bpy.ops.wm.obj_export(filepath=output_file, export_triangulated_mesh=False, export_uv=True, export_normals=False, export_materials=False, filter_glob='*.obj;*.mtl')
+    bpy.ops.wm.obj_export(
+        filepath=output_file,
+        export_triangulated_mesh=False,
+        export_uv=True,
+        export_normals=False,
+        export_materials=False,
+        filter_glob='*.obj;*.mtl'
+    )
 
     # Print the result
     print(f"Successfully saved triangulated OBJ to: {output_file}")
@@ -65,6 +77,7 @@ def process_obj_file(obj_file, input_folder, output_folder):
     if purge_counter == 0:
         bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
         purge_counter = 100
+
 
 # Process each OBJ file sequentially
 for obj_file in obj_files:

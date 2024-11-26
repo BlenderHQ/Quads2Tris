@@ -5,6 +5,7 @@ import time
 from PyQt5 import QtWidgets, QtCore
 import sys
 
+
 class TriangulationApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -154,7 +155,11 @@ class TriangulationApp(QtWidgets.QWidget):
 
     def start_triangulation(self):
         if not hasattr(self, 'input_folder') or not hasattr(self, 'output_folder'):
-            QtWidgets.QMessageBox.warning(self, "Error", "Please select both a working directory and an output directory first.")
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Error",
+                "Please select both a working directory and an output directory first."
+            )
             return
 
         input_folder = self.input_folder
@@ -198,6 +203,7 @@ class TriangulationApp(QtWidgets.QWidget):
         print("All subprocesses completed.")
         print(f"Processed {total_files} OBJ files in {num_processes} parallel processes.")
         print(f"Total processing time: {total_time:.2f} seconds")
+
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
