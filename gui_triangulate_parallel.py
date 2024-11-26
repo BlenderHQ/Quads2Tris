@@ -20,64 +20,10 @@ class TriangulationApp(QtWidgets.QWidget):
     def initUI(self):
 
         # set stylesheet
-        self.setStyleSheet("""
-            * {
-            color: #E0E0E0;
-            background-color: #101010;
-            }
-            /*Tool Button*/
-            QToolButton {
-            background: #282828;
-            color: #E0E0E0;
-            border: none;
-            border-radius: 3px;
-            }
-            /*Push Button*/
-            QPushButton {
-            background: #202020;
-            color: #606060;
-            border: none;
-            border-radius: 3px;
-            }
-            QPushButton:flat:disabled {
-            background: #202020;
-            color: #606060;
-            }
-            QPushButton:flat:checked:disabled {
-            background: #202020;
-            color: #606060;
-            }
-            QPushButton:flat {
-            background: #202020;
-            color: #606060;
-            border: none;
-            border-radius: 3px;
-            }
-            QPushButton:flat:checked {
-            background: #101010;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            }
-            /*Radio Button*/
-            QRadioButton {
-            spacing: 3px;
-            margin: 0px;
-            margin-right: 3px;
-            }
-            QRadioButton::indicator {
-            margin: 0px;
-            }
-            QPlainTextEdit {
-            border: none;
-            background: #1E1E1E;
-            }
-            QSpinBox {
-            color: white;
-            background-color: #101010;
-            border: 0px solid black;
-            }
-        """)
+        with open("style.qt", 'r') as stylesheet_file:
+            stylesheet_data = stylesheet_file.read()
+
+        self.setStyleSheet(stylesheet_data)
 
         # Layout setup
         layout = QtWidgets.QVBoxLayout()
@@ -212,6 +158,8 @@ class TriangulationApp(QtWidgets.QWidget):
 
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(__file__))
+
     app = QtWidgets.QApplication(sys.argv)
     window = TriangulationApp()
     window.show()
