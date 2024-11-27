@@ -64,3 +64,8 @@ QSpinBox {
     background-color: #101010;
     border: 0px solid black;
 }
+
+QLineEdit {
+    background:#303030;
+    border:none;
+}
