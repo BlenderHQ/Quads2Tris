@@ -204,7 +204,7 @@ class TriangulationApp(QtWidgets.QWidget):
             self.output_sub_folder = directory
 
     def start_triangulation(self):
-        if not hasattr(self, 'input_folder'):
+        if not hasattr(self, 'input_folders'):
             QtWidgets.QMessageBox.warning(
                 self,
                 "Error",
