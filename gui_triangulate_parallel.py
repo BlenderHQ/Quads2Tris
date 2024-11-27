@@ -5,24 +5,24 @@
 from __future__ import annotations
 
 import os
-import concurrent.futures as cf
+import sys
 import math
 import time
+import multiprocessing
+import concurrent.futures as cf
+from functools import partial
 from PyQt5 import QtWidgets, QtCore
-import sys
 
-# Counter for purging orphaned data blocks, initialized to 100
-purge_counter = 100
-
-
-def process_obj_files(files, input_folder, output_folder):
+def process_obj_files(files, input_folder, output_folder, purge_frequency):
     import bpy
 
+    process_id = os.getpid()
+
+    purge_counter = purge_frequency
     for obj_file in files:
 
-        global purge_counter
-        print(f"Processing OBJ file: {obj_file}")
-
+        print(f"[{process_id}] Processing OBJ file: {obj_file}")
+        
         input_file = os.path.join(input_folder, obj_file)
         output_file = os.path.join(output_folder, obj_file)
 
@@ -60,17 +60,17 @@ def process_obj_files(files, input_folder, output_folder):
         )
 
         # Print the result
-        print(f"Successfully saved triangulated OBJ to: {output_file}")
+        print(f"[{process_id}] Successfully saved triangulated OBJ to: {output_file}")
 
         # Delete all imported objects from the scene to clear memory completely
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.object.delete()
 
-        # Purge orphaned data blocks every 100 meshes
+        # Purge orphaned data blocks every N meshes
         purge_counter -= 1
         if purge_counter == 0:
             bpy.ops.outliner.orphans_purge(do_local_ids=True, do_linked_ids=True, do_recursive=True)
-            purge_counter = 100
+            purge_counter = purge_frequency
 
 
 class TriangulationApp(QtWidgets.QWidget):
@@ -122,7 +122,7 @@ class TriangulationApp(QtWidgets.QWidget):
 
         self.threads_spinbox = QtWidgets.QSpinBox()
         self.threads_spinbox.setRange(1, 64)
-        self.threads_spinbox.setValue(8)
+        self.threads_spinbox.setValue(multiprocessing.cpu_count()//2)
         self.threads_spinbox.setFixedHeight(30)
         layout.addWidget(self.threads_spinbox)
 
@@ -148,7 +148,7 @@ class TriangulationApp(QtWidgets.QWidget):
         self.setWindowTitle("OBJ Triangulation Tool")
         self.setGeometry(300, 300, 400, 300)
 
-        # set alway on top
+        # Set alway on top
         self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
 
     def select_working_directory(self):
@@ -189,8 +189,10 @@ class TriangulationApp(QtWidgets.QWidget):
         # Start timing
         start_time = time.time()
 
+        process_obj_files_with_args = partial(process_obj_files, input_folder=input_folder, output_folder=output_folder, purge_frequency=purge_frequency)
+        
         with cf.ProcessPoolExecutor(max_workers=num_processes) as executor:
-            executor.map(process_obj_files, chunks, input_folder, output_folder)
+            executor.map(process_obj_files_with_args, chunks)
 
         # End timing
         end_time = time.time()
